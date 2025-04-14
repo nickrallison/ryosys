@@ -165,7 +165,8 @@ fn generate_bindings(yosys_build_dir: &Path) {
     builder = builder.allowlist_item("Yosys::.*");
     builder = builder
         .allowlist_function("std.*?string.*?");
-    builder = builder.allowlist_type("run_frontend_wrapper");
+    builder = builder.allowlist_function("run_frontend_wrapper");
+    builder = builder.allowlist_function("new_yosys_rtlil_design");
 
     // Opaque types
     builder = builder.opaque_type(".*?_Variadic_union.*?");

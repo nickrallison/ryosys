@@ -5,4 +5,6 @@
 #include "kernel/hashlib.h"
 #include "kernel/rtlil.h"
 
-int run_frontend_wrapper(char* filename, char* command, Yosys::RTLIL::Design *design);
+bool run_frontend_wrapper(char* filename, char* command, Yosys::RTLIL::Design *design);
+
+Yosys::RTLIL::Design* new_yosys_rtlil_design();
