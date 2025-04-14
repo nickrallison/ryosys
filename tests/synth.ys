@@ -1,0 +1,3 @@
+read -sv tests/TimerBug.sv
+hierarchy -top Timer
+write_rtlil
