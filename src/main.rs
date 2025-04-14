@@ -40,7 +40,6 @@ module mh22(ref wire x); endmodule
     let design: *mut Yosys_RTLIL_Design = null_mut();
     unsafe { Yosys_yosys_setup(); }
 
-
     println!("Hello, world!");
 
 

@@ -5,11 +5,9 @@ use std::{
     path::{PathBuf},
     process::Command,
 };
-use std::ffi::OsString;
 use std::path::Path;
-use bindgen::{Bindings, CargoCallbacks};
+use bindgen::{Bindings};
 use bindgen::callbacks::ParseCallbacks;
-use regex::Regex;
 
 
 fn find_it<P>(exe_name: P) -> Option<PathBuf>
@@ -86,22 +84,6 @@ fn make_build(yosys_src_dir: &Path) {
         .status()
         .expect("Failed to execute make command");
     assert!(status.success(), "make command failed: {:?}", status);
-
-    // let so_path = yosys_src_dir.join("libyosys.so");
-    // let build_dir: PathBuf = PathBuf::from(env::var("OUT_DIR").unwrap());
-    // std::fs::copy(so_path, &build_dir);
-    // 
-    // // find patchelf
-    // let patchelf_path = find_it("patchelf").unwrap_or_else(|| {
-    //     panic!("patchelf not found in PATH");
-    // });
-    // let status = Command::new(patchelf_path)
-    //     .current_dir(&build_dir)
-    //     .args(&["--set-soname", "libyosys.so", "libyosys.so"])
-    //     .status()
-    //     .expect("Failed to execute patchelf command");
-    // 
-    // assert!(status.success(), "patchelf command failed: {:?}", status);
 }
 
 #[derive(Debug)]
@@ -121,6 +103,7 @@ fn generate_bindings(yosys_build_dir: &Path) {
     let manifest_dir_string = env::var("CARGO_MANIFEST_DIR").unwrap();
     println!("cargo:rustc-link-search={}", yosys_build_dir.to_str().unwrap());
     println!("cargo:rustc-link-lib=yosys");
+    println!("cargo:rustc-link-arg=-Wl,-rpath,{}", yosys_build_dir.to_string_lossy());
 
     let mut builder = bindgen::Builder::default()
         .clang_arg("-std=c++20")
@@ -144,8 +127,8 @@ fn generate_bindings(yosys_build_dir: &Path) {
     builder = builder
         .allowlist_var("Yosys::.*");
     builder = builder.allowlist_item("Yosys::.*");
-    // builder = builder
-    //     .allowlist_function("std.*?string.*?");
+    builder = builder
+        .allowlist_function("std.*?string.*?");
 
     // Opaque types
     builder = builder.opaque_type(".*?_Variadic_union.*?");
