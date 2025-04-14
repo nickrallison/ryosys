@@ -9,3 +9,4 @@ bindgen = { git = "https://github.com/nickrallison/rust-bindgen.git" }
 regex = "1.11.1"
 
 [dependencies]
+tempfile = "3.19.1"
