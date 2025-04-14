@@ -6,14 +6,14 @@ use std::{
     process::Command,
 };
 use std::path::Path;
-use bindgen::Bindings;
+use bindgen::{Bindings, CargoCallbacks};
+use bindgen::callbacks::ParseCallbacks;
 use regex::Regex;
 
-fn download_yosys(yosys_version: &str) -> PathBuf {
+fn download_yosys(yosys_url: &str, yosys_version: &str) -> PathBuf {
     // Compute the tarball URL at runtime.
     let yosys_tarball_url = format!(
-        "https://github.com/YosysHQ/yosys/archive/refs/tags/v{}.tar.gz",
-        yosys_version
+        "{yosys_url}/archive/refs/tags/v{yosys_version}.tar.gz"
     );
 
     // Get the OUT_DIR to download and extract the source.
@@ -86,6 +86,17 @@ where P: AsRef<Path>,
     })
 }
 
+#[derive(Debug)]
+struct MyCallback;
+impl ParseCallbacks for MyCallback {
+    fn item_name(&self, name: &str) -> Option<String> {
+        if name == "Yosys_RTLIL_SigSpec_remove2" {
+            return Some("Yosys_RTLIL_SigSpec_remove_2".to_string())
+        }
+        Some(name.to_string())
+    }
+}
+
 fn generate_bindings(yosys_build_dir: &Path) {
 
     // Tell cargo to look for shared libraries in the specified directory
@@ -103,17 +114,44 @@ fn generate_bindings(yosys_build_dir: &Path) {
             yosys_build_dir.join(".").to_str().unwrap()
         ));
 
+    // Layout Tests Disable
+    builder = builder.layout_tests(false);
+
+    // Whitelist
+    builder = builder
+        .allowlist_type("Yosys::.*");
+    builder = builder
+        .allowlist_function("Yosys::.*");
+    builder = builder
+        .allowlist_var("Yosys::.*");
+    builder = builder.allowlist_item("Yosys::.*");
+    // builder = builder
+    //     .allowlist_function("std.*?string.*?");
+
     // Opaque types
     builder = builder.opaque_type(".*?_Variadic_union.*?");
     builder = builder.opaque_type(".*?collate.*?");
+    builder = builder.opaque_type("std::.*?");
+
+    // Needs to be opaque, has generic issues
+    builder = builder.opaque_type("Yosys::RTLIL::ObjIterator.*?");
+    builder = builder.opaque_type("Yosys::RTLIL::ObjRange.*?");
+
+    // Ignore certain types
     builder = builder.blocklist_type(".*?memory_order.*?");
+    builder = builder.blocklist_item("FP_.*");
+    builder = builder.blocklist_type(".*?_Bit_iterator");
 
     // Add the header file
     builder = builder.header(format!("{manifest_dir_string}/include/wrapper.hpp"));
 
+
+        
+
     // Generate the bindings
     let bindings_r = builder
         .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
+        .parse_callbacks(Box::new(MyCallback {}))
         .generate();
 
     let bindings: Bindings = match bindings_r {
@@ -136,10 +174,14 @@ fn main() {
     println!("cargo:rerun-if-changed=build.rs");
 
     // Define the desired version for Yosys.
+    const YOSYS_URL: &str = "https://github.com/YosysHQ/yosys";
     const YOSYS_VERSION: &str = "0.52";
 
+    // const YOSYS_URL: &str = "https://github.com/nickrallison/yosys";
+    // const YOSYS_VERSION: &str = "0.1";
+
     // Download and extract the Yosys source code.
-    let yosys_src_dir = download_yosys(YOSYS_VERSION);
+    let yosys_src_dir = download_yosys(YOSYS_URL, YOSYS_VERSION);
 
     // Build Yosys using the cmake crate with cxx20.
     make_build(&yosys_src_dir);

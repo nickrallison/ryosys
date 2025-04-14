@@ -14,6 +14,7 @@ dependencies = [
 [[package]]
 name = "bindgen"
 version = "0.71.1"
+source = "git+https://github.com/nickrallison/rust-bindgen.git#473478d6d35d39bcb6a6659cbc34516f112bcc37"
 dependencies = [
  "bitflags",
  "cexpr",
