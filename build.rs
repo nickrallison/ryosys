@@ -5,10 +5,33 @@ use std::{
     path::{PathBuf},
     process::Command,
 };
+use std::ffi::OsString;
 use std::path::Path;
 use bindgen::{Bindings, CargoCallbacks};
 use bindgen::callbacks::ParseCallbacks;
 use regex::Regex;
+
+
+fn find_it<P>(exe_name: P) -> Option<PathBuf>
+where P: AsRef<Path>,
+{
+    let os = env::consts::OS;
+    if os != "linux" {
+        panic!("Only supports Linux, Unsupported OS: {}", os);
+    };
+
+    env::var_os("PATH").and_then(|paths| {
+        env::split_paths(&paths).filter_map(|dir| {
+            let full_path = dir.join(&exe_name);
+            if full_path.is_file() {
+                Some(full_path)
+            } else {
+                None
+            }
+        }).next()
+    })
+}
+
 
 fn download_yosys(yosys_url: &str, yosys_version: &str) -> PathBuf {
     // Compute the tarball URL at runtime.
@@ -64,38 +87,21 @@ fn make_build(yosys_src_dir: &Path) {
         .expect("Failed to execute make command");
     assert!(status.success(), "make command failed: {:?}", status);
 
-    // find patchelf
-    let patchelf_path = find_it("patchelf").unwrap_or_else(|| {
-        panic!("patchelf not found in PATH");
-    });
-    let status = Command::new(patchelf_path)
-        .current_dir(yosys_src_dir)
-        .args(&["--set-soname", "libyosys.so", "libyosys.so"])
-        .status()
-        .expect("Failed to execute patchelf command");
-    
-    assert!(status.success(), "patchelf command failed: {:?}", status);
-
-}
-
-fn find_it<P>(exe_name: P) -> Option<PathBuf>
-where P: AsRef<Path>,
-{
-    let os = env::consts::OS;
-    if os != "linux" {
-        panic!("Only supports Linux, Unsupported OS: {}", os);
-    };
-
-    env::var_os("PATH").and_then(|paths| {
-        env::split_paths(&paths).filter_map(|dir| {
-            let full_path = dir.join(&exe_name);
-            if full_path.is_file() {
-                Some(full_path)
-            } else {
-                None
-            }
-        }).next()
-    })
+    // let so_path = yosys_src_dir.join("libyosys.so");
+    // let build_dir: PathBuf = PathBuf::from(env::var("OUT_DIR").unwrap());
+    // std::fs::copy(so_path, &build_dir);
+    // 
+    // // find patchelf
+    // let patchelf_path = find_it("patchelf").unwrap_or_else(|| {
+    //     panic!("patchelf not found in PATH");
+    // });
+    // let status = Command::new(patchelf_path)
+    //     .current_dir(&build_dir)
+    //     .args(&["--set-soname", "libyosys.so", "libyosys.so"])
+    //     .status()
+    //     .expect("Failed to execute patchelf command");
+    // 
+    // assert!(status.success(), "patchelf command failed: {:?}", status);
 }
 
 #[derive(Debug)]
