@@ -5,6 +5,8 @@ use crate::helper::str_to_cstr;
 
 pub mod bindings;
 mod helper;
+mod frontend;
+mod elab;
 
 fn main() {
     
@@ -18,8 +20,6 @@ fn main() {
     let frontend_command: *mut c_char = str_to_cstr(frontend_command);
     let file_path: *mut c_char = str_to_cstr(path);
 
-    let result = unsafe { Yosys_run_frontend_wrapper(file_path, frontend_command, design) };
-
-    println!("frontend_result: {result}");
+    unsafe { Yosys_run_frontend_wrapper(file_path, frontend_command, design) };
 
 }
