@@ -103,6 +103,25 @@ fn build_wrapper(yosys_src_dir: &Path) {
         .compile("wrapper");
 }
 
+fn patch_libyosys(yosys_src_dir: &Path) {
+    let lib_path = yosys_src_dir.join("libyosys.so");
+
+    // Change the SONAME to a relative name.
+    let status = Command::new("patchelf")
+        .args(&["--set-soname", "libyosys.so", lib_path.to_str().unwrap()])
+        .status()
+        .expect("Failed to execute patchelf for setting SONAME");
+    assert!(status.success(), "patchelf failed to set SONAME");
+
+    // Set the rpath to the build directory so that dependent executables can find it.
+    let status = Command::new("patchelf")
+        .args(&["--set-rpath", yosys_src_dir.to_str().unwrap(), lib_path.to_str().unwrap()])
+        .status()
+        .expect("Failed to execute patchelf for setting rpath");
+    assert!(status.success(), "patchelf failed to set rpath");
+
+}
+
 #[derive(Debug)]
 struct MyCallback;
 impl ParseCallbacks for MyCallback {
@@ -201,6 +220,9 @@ fn main() {
 
     // Build Yosys using the cmake crate with cxx20.
     make_build(&yosys_src_dir);
+
+    // Patch the built libyosys.so so that its SONAME and rpath point to the right place.
+    patch_libyosys(&yosys_src_dir);
 
     // Generate wrapper code
     build_wrapper(&yosys_src_dir);
