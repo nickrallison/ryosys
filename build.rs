@@ -86,6 +86,23 @@ fn make_build(yosys_src_dir: &Path) {
     assert!(status.success(), "make command failed: {:?}", status);
 }
 
+/// Compile the C++ wrapper (wrapper.cpp) that converts C strings to std::string.
+fn build_wrapper(yosys_src_dir: &Path) {
+    // Use the cc crate to compile the wrapper.cpp file.
+
+    let yosys_src_dir_str = yosys_src_dir.join(".").to_str().unwrap().to_string();
+    let manifest_dir = env::var("CARGO_MANIFEST_DIR").unwrap() + "/include";
+    let wrapper_file_path = Path::new(&manifest_dir).join("wrapper.cpp");
+    cc::Build::new()
+        .cpp(true)
+        .flag("-std=c++20")
+        .flag("-D_YOSYS_")
+        .include(yosys_src_dir_str)
+        .include(manifest_dir)
+        .file(wrapper_file_path)
+        .compile("wrapper");
+}
+
 #[derive(Debug)]
 struct MyCallback;
 impl ParseCallbacks for MyCallback {
@@ -184,6 +201,9 @@ fn main() {
 
     // Build Yosys using the cmake crate with cxx20.
     make_build(&yosys_src_dir);
+
+    // Generate wrapper code
+    build_wrapper(&yosys_src_dir);
 
     // Generate the Rust bindings for Yosys.
     generate_bindings(&yosys_src_dir);
