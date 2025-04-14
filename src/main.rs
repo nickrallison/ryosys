@@ -1,7 +1,9 @@
 use std::ptr::null_mut;
 use crate::bindings::*;
+use crate::helper::str_to_cstr;
 
 pub mod bindings;
+mod helper;
 
 fn main() {
 
@@ -40,8 +42,11 @@ module mh22(ref wire x); endmodule
     let design: *mut Yosys_RTLIL_Design = null_mut();
     unsafe { Yosys_yosys_setup(); }
 
-    println!("Hello, world!");
+    let frontend_command = str_to_cstr(frontend_command);
+    let file_path = str_to_cstr(path.to_str().unwrap());
+    
+    let result = unsafe { Yosys_run_frontend_wrapper(file_path, frontend_command, design) };
 
-
+    println!("frontend_result: {result}");
 
 }

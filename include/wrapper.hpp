@@ -5,4 +5,4 @@
 #include "kernel/hashlib.h"
 #include "kernel/rtlil.h"
 
-std::string std_string_from_cstr(char* cstr);
+int run_frontend_wrapper(char* filename, char* command, Yosys::RTLIL::Design *design);

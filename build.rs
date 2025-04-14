@@ -165,6 +165,7 @@ fn generate_bindings(yosys_build_dir: &Path) {
     builder = builder.allowlist_item("Yosys::.*");
     builder = builder
         .allowlist_function("std.*?string.*?");
+    builder = builder.allowlist_type("run_frontend_wrapper");
 
     // Opaque types
     builder = builder.opaque_type(".*?_Variadic_union.*?");
@@ -212,8 +213,11 @@ fn main() {
     println!("cargo:rerun-if-changed=build.rs");
 
     // Define the desired version for Yosys.
-    const YOSYS_URL: &str = "https://github.com/YosysHQ/yosys";
-    const YOSYS_VERSION: &str = "0.52";
+    // const YOSYS_URL: &str = "https://github.com/YosysHQ/yosys";
+    // const YOSYS_VERSION: &str = "0.52";
+
+    const YOSYS_URL: &str = "https://github.com/nickrallison/yosys";
+    const YOSYS_VERSION: &str = "0.3";
 
     // Download and extract the Yosys source code.
     let yosys_src_dir = download_yosys(YOSYS_URL, YOSYS_VERSION);
