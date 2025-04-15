@@ -1,17 +1,11 @@
-
-use std::{
-    env,
-    fs,
-    path::{PathBuf},
-    process::Command,
-};
-use std::path::Path;
-use bindgen::{Bindings};
+use bindgen::Bindings;
 use bindgen::callbacks::ParseCallbacks;
-
+use std::path::Path;
+use std::{env, fs, path::PathBuf, process::Command};
 
 fn find_it<P>(exe_name: P) -> Option<PathBuf>
-where P: AsRef<Path>,
+where
+    P: AsRef<Path>,
 {
     let os = env::consts::OS;
     if os != "linux" {
@@ -19,23 +13,22 @@ where P: AsRef<Path>,
     };
 
     env::var_os("PATH").and_then(|paths| {
-        env::split_paths(&paths).filter_map(|dir| {
-            let full_path = dir.join(&exe_name);
-            if full_path.is_file() {
-                Some(full_path)
-            } else {
-                None
-            }
-        }).next()
+        env::split_paths(&paths)
+            .filter_map(|dir| {
+                let full_path = dir.join(&exe_name);
+                if full_path.is_file() {
+                    Some(full_path)
+                } else {
+                    None
+                }
+            })
+            .next()
     })
 }
 
-
 fn download_yosys(yosys_url: &str, yosys_version: &str) -> PathBuf {
     // Compute the tarball URL at runtime.
-    let yosys_tarball_url = format!(
-        "{yosys_url}/archive/refs/tags/v{yosys_version}.tar.gz"
-    );
+    let yosys_tarball_url = format!("{yosys_url}/archive/refs/tags/v{yosys_version}.tar.gz");
 
     // Get the OUT_DIR to download and extract the source.
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
@@ -44,7 +37,10 @@ fn download_yosys(yosys_url: &str, yosys_version: &str) -> PathBuf {
 
     // If the Yosys source directory does not exist, download and extract it.
     if !yosys_src_dir.exists() {
-        println!("Downloading Yosys {} from {}", yosys_version, yosys_tarball_url);
+        println!(
+            "Downloading Yosys {} from {}",
+            yosys_version, yosys_tarball_url
+        );
         // Define the path where the tarball will be saved.
         let tarball_path = out_dir.join(format!("{yosys_version}.tar.gz"));
         // Download the tarball using the "curl" command.
@@ -54,13 +50,26 @@ fn download_yosys(yosys_url: &str, yosys_version: &str) -> PathBuf {
             .arg(&yosys_tarball_url)
             .status()
             .expect("Failed to execute curl to download Yosys tarball");
-        assert!(status.success(), "curl failed to download Yosys tarball: {:?}", status);
+        assert!(
+            status.success(),
+            "curl failed to download Yosys tarball: {:?}",
+            status
+        );
         // Extract the tarball using the "tar" command.
         let status = Command::new("tar")
-            .args(&["-xzf", tarball_path.to_str().unwrap(), "-C", out_dir.to_str().unwrap()])
+            .args(&[
+                "-xzf",
+                tarball_path.to_str().unwrap(),
+                "-C",
+                out_dir.to_str().unwrap(),
+            ])
             .status()
             .expect("Failed to execute tar command to extract Yosys tarball");
-        assert!(status.success(), "tar command failed to extract Yosys tarball: {:?}", status);
+        assert!(
+            status.success(),
+            "tar command failed to extract Yosys tarball: {:?}",
+            status
+        );
         // Rename the extracted folder to "yosys-src"
         let extracted_dir = out_dir.join(format!("yosys-{yosys_version}"));
         fs::rename(&extracted_dir, &yosys_src_dir)
@@ -115,11 +124,14 @@ fn patch_libyosys(yosys_src_dir: &Path) {
 
     // Set the rpath to the build directory so that dependent executables can find it.
     let status = Command::new("patchelf")
-        .args(&["--set-rpath", yosys_src_dir.to_str().unwrap(), lib_path.to_str().unwrap()])
+        .args(&[
+            "--set-rpath",
+            yosys_src_dir.to_str().unwrap(),
+            lib_path.to_str().unwrap(),
+        ])
         .status()
         .expect("Failed to execute patchelf for setting rpath");
     assert!(status.success(), "patchelf failed to set rpath");
-
 }
 
 #[derive(Debug)]
@@ -127,44 +139,41 @@ struct MyCallback;
 impl ParseCallbacks for MyCallback {
     fn item_name(&self, name: &str) -> Option<String> {
         if name == "Yosys_RTLIL_SigSpec_remove2" {
-            return Some("Yosys_RTLIL_SigSpec_remove_2".to_string())
+            return Some("Yosys_RTLIL_SigSpec_remove_2".to_string());
         }
         Some(name.to_string())
     }
 }
 
 fn generate_bindings(yosys_build_dir: &Path) {
-
     // Tell cargo to look for shared libraries in the specified directory
     let manifest_dir_string = env::var("CARGO_MANIFEST_DIR").unwrap();
-    println!("cargo:rustc-link-search={}", yosys_build_dir.to_str().unwrap());
+    println!(
+        "cargo:rustc-link-search={}",
+        yosys_build_dir.to_str().unwrap()
+    );
     println!("cargo:rustc-link-lib=yosys");
-    println!("cargo:rustc-link-arg=-Wl,-rpath,{}", yosys_build_dir.to_string_lossy());
+    println!(
+        "cargo:rustc-link-arg=-Wl,-rpath,{}",
+        yosys_build_dir.to_string_lossy()
+    );
 
     let mut builder = bindgen::Builder::default()
         .clang_arg("-std=c++20")
         .clang_arg("-D_YOSYS_");
 
     // Add include paths
-    builder = builder
-        .clang_arg(format!(
-            "-I{}",
-            yosys_build_dir.join(".").to_str().unwrap()
-        ));
+    builder = builder.clang_arg(format!("-I{}", yosys_build_dir.join(".").to_str().unwrap()));
 
     // Layout Tests Disable
     builder = builder.layout_tests(false);
 
     // Whitelist
-    builder = builder
-        .allowlist_type("Yosys::.*");
-    builder = builder
-        .allowlist_function("Yosys::.*");
-    builder = builder
-        .allowlist_var("Yosys::.*");
+    builder = builder.allowlist_type("Yosys::.*");
+    builder = builder.allowlist_function("Yosys::.*");
+    builder = builder.allowlist_var("Yosys::.*");
     builder = builder.allowlist_item("Yosys::.*");
-    builder = builder
-        .allowlist_function("std.*?string.*?");
+    builder = builder.allowlist_function("std.*?string.*?");
     builder = builder.allowlist_function("run_frontend_wrapper");
     builder = builder.allowlist_function("new_yosys_rtlil_design");
 
@@ -178,15 +187,12 @@ fn generate_bindings(yosys_build_dir: &Path) {
     builder = builder.opaque_type("Yosys::RTLIL::ObjRange.*?");
 
     // Ignore certain types
-    builder = builder.blocklist_type(".*?memory_order.*?");
-    builder = builder.blocklist_item("FP_.*");
-    builder = builder.blocklist_type(".*?_Bit_iterator");
+    // builder = builder.blocklist_type(".*?memory_order.*?");
+    // builder = builder.blocklist_item("FP_.*");
+    // builder = builder.blocklist_type(".*?_Bit_iterator");
 
     // Add the header file
     builder = builder.header(format!("{manifest_dir_string}/include/wrapper.hpp"));
-
-
-
 
     // Generate the bindings
     let bindings_r = builder
@@ -207,7 +213,6 @@ fn generate_bindings(yosys_build_dir: &Path) {
         .write_to_file(out_path.join("bindings.rs"))
         .expect("Couldn't write bindings!");
 }
-
 
 fn main() {
     // Instruct Cargo to re-run this script if build.rs itself changes.
