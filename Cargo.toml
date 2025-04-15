@@ -4,10 +4,11 @@ version = "0.1.0"
 edition = "2024"
 
 [build-dependencies]
-bindgen = { git = "https://github.com/nickrallison/rust-bindgen.git" }
+bindgen = "0.71.1"
 regex = "1.11.1"
 cc = "1.2.19"
 
 [dependencies]
+
 tempfile = "3.19.1"
 

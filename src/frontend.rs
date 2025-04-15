@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 
+#[derive(Debug, Clone)]
 pub struct Frontend {
     // sv_files: Vec<PathBuf>,
     sv_file: PathBuf,
