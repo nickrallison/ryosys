@@ -10,7 +10,7 @@ pub struct Elab {
 }
 
 impl Elab {
-    pub fn elab(frontend: Frontend) -> Elab {
+    pub fn new(frontend: Frontend) -> Elab {
         let design: *mut Yosys_RTLIL_Design = unsafe { new_yosys_rtlil_design() };
         unsafe {
             Yosys_yosys_setup();
