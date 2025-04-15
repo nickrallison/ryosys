@@ -19,8 +19,15 @@ namespace Wrapper {
     void delete_yosys_rtlil_design(Yosys::RTLIL::Design* design);
 
     // MODULE
+
+    size_t get_num_monitors(const Yosys::RTLIL::Module* module);
+    Yosys::RTLIL::Monitor* get_monitor_by_index(const Yosys::RTLIL::Module* module, size_t idx);
+
     size_t get_num_wires(const Yosys::RTLIL::Module* module);
     Yosys::RTLIL::Wire* get_wire_by_index(const Yosys::RTLIL::Module* module, size_t idx);
+    Yosys::RTLIL::IdString get_wire_id_by_index(const Yosys::RTLIL::Module* module, size_t idx);
+
     size_t get_num_cells(const Yosys::RTLIL::Module* module);
     Yosys::RTLIL::Cell* get_cell_by_index(const Yosys::RTLIL::Module* module, size_t idx);
+    Yosys::RTLIL::IdString get_cell_id_by_index(const Yosys::RTLIL::Module* module, size_t idx);
 }

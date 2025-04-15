@@ -1,6 +1,16 @@
 
-use crate::bindings::{Wrapper_get_cell_by_index, Wrapper_get_num_cells, Wrapper_get_num_wires, Wrapper_get_wire_by_index, Yosys_RTLIL_Module, Yosys_RTLIL_Module_Add};
+use crate::bindings::{Wrapper_get_cell_by_index, Wrapper_get_num_cells, Wrapper_get_num_wires, Wrapper_get_wire_by_index, Yosys_RTLIL_Memory, Yosys_RTLIL_Module, Yosys_RTLIL_Module_Add};
+use crate::elab::binding::Binding;
 use crate::elab::cell::Cell;
+use crate::elab::constant::Const;
+use crate::elab::helper::dict::Dict;
+use crate::elab::helper::id_string::IdString;
+use crate::elab::helper::idict::IDict;
+use crate::elab::helper::pool::Pool;
+use crate::elab::memory::Memory;
+use crate::elab::monitor::Monitor;
+use crate::elab::process::Process;
+use crate::elab::sig_sig::SigSig;
 use crate::elab::wire::Wire;
 
 pub struct Module {
@@ -8,43 +18,28 @@ pub struct Module {
     ptr: *mut Yosys_RTLIL_Module,
 
     // INTERFACE
-    wires: Vec<Wire>,
-    cells: Vec<Cell>,
+    // monitors: Pool<Monitor>,
+    //
+    // wires: Dict<IdString, Wire>,
+    // cells: Dict<IdString, Cell>,
+    //
+    // connections: Vec<SigSig>,
+    // bindings: Vec<Binding>,
+    //
+    // available_parameters: IDict<IdString>,
+    // parameter_default_values: Dict<IdString, Const>,
+    // memories: Dict<IdString, Memory>,
+    // processes: Dict<IdString, Process>,
 }
 
 impl Module {
-    pub(crate) fn from_ptr(ptr: *mut Yosys_RTLIL_Module) -> Self {
-        let len_wires: usize = unsafe {
-            Wrapper_get_num_wires(ptr)
-        };
-        let len_cells: usize = unsafe {
-            Wrapper_get_num_cells(ptr)
-        };
 
-        let mut wires: Vec<Wire> = Vec::with_capacity(len_wires);
-        let mut cells: Vec<Cell> = Vec::with_capacity(len_cells);
+}
 
-        for index in 0..len_wires {
-            let wire_ptr = unsafe {
-                Wrapper_get_wire_by_index(ptr, index)
-            };
-            let wire: Wire = Wire::from_ptr(wire_ptr);
-            wires.push(wire);
-        }
-
-        for index in 0..len_cells {
-            let cell_ptr = unsafe {
-                Wrapper_get_cell_by_index(ptr, index)
-            };
-            let cell: Cell = Cell::from_ptr(cell_ptr);
-            cells.push(cell);
-        }
-
-
+impl From<*mut Yosys_RTLIL_Module> for Module {
+    fn from(ptr: *mut Yosys_RTLIL_Module) -> Self {
         Self {
-            ptr,
-            wires,
-            cells
+            ptr
         }
     }
 }

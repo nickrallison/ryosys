@@ -18,6 +18,16 @@ namespace Wrapper {
     }
 
     // MODULE
+
+    size_t get_num_monitors(const Yosys::RTLIL::Module* module)  {
+        return module->monitors.size();
+    }
+    Yosys::RTLIL::Monitor* get_monitor_by_index(const Yosys::RTLIL::Module* module, size_t idx) {
+        auto it = module->monitors.begin();
+        std::advance(it, idx);
+        return *it;
+    }
+
     size_t get_num_wires(const Yosys::RTLIL::Module* module) {
         return module->wires_.size();
     }
@@ -25,6 +35,11 @@ namespace Wrapper {
         auto it = module->wires_.begin();
         std::advance(it, idx);
         return it->second;
+    }
+    Yosys::RTLIL::IdString get_wire_id_by_index(const Yosys::RTLIL::Module* module, size_t idx) {
+        auto it = module->wires_.begin();
+        std::advance(it, idx);
+        return it->first;
     }
 
     size_t get_num_cells(const Yosys::RTLIL::Module* module) {
@@ -35,6 +50,12 @@ namespace Wrapper {
         std::advance(it, idx);
         return it->second;
     }
+    Yosys::RTLIL::IdString get_cell_id_by_index(const Yosys::RTLIL::Module* module, size_t idx) {
+        auto it = module->cells_.begin();
+        std::advance(it, idx);
+        return it->first;
+    }
+
 }
 
 

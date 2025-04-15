@@ -1,5 +1,6 @@
 
-use crate::bindings::{Yosys_RTLIL_Wire};
+use crate::bindings::{Yosys_RTLIL_SigSig, Yosys_RTLIL_Wire};
+use crate::elab::sig_sig::SigSig;
 
 pub struct Wire {
     // UNSAFE
@@ -9,9 +10,13 @@ pub struct Wire {
 }
 
 impl Wire {
-    pub(crate) fn from_ptr(ptr: *mut Yosys_RTLIL_Wire) -> Self {
+
+}
+
+impl From<*mut Yosys_RTLIL_Wire> for Wire {
+    fn from(ptr: *mut Yosys_RTLIL_Wire) -> Self {
         Self {
-            ptr
+            ptr,
         }
     }
 }
