@@ -183,8 +183,8 @@ fn generate_bindings(yosys_build_dir: &Path) {
     builder = builder.opaque_type("std::.*?");
 
     // Needs to be opaque, has generic issues
-    builder = builder.opaque_type("Yosys::RTLIL::ObjIterator.*?");
-    builder = builder.opaque_type("Yosys::RTLIL::ObjRange.*?");
+    // builder = builder.opaque_type("Yosys::RTLIL::ObjIterator.*?");
+    // builder = builder.opaque_type("Yosys::RTLIL::ObjRange.*?");
 
     // Ignore certain types
     // builder = builder.blocklist_type(".*?memory_order.*?");
@@ -223,7 +223,7 @@ fn main() {
     // const YOSYS_VERSION: &str = "0.52";
 
     const YOSYS_URL: &str = "https://github.com/nickrallison/yosys";
-    const YOSYS_VERSION: &str = "0.3";
+    const YOSYS_VERSION: &str = "0.5";
 
     // Download and extract the Yosys source code.
     let yosys_src_dir = download_yosys(YOSYS_URL, YOSYS_VERSION);
