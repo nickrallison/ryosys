@@ -18,18 +18,18 @@ pub struct Module {
     ptr: *mut Yosys_RTLIL_Module,
 
     // INTERFACE
-    // monitors: Pool<Monitor>,
-    //
-    // wires: Dict<IdString, Wire>,
-    // cells: Dict<IdString, Cell>,
-    //
-    // connections: Vec<SigSig>,
-    // bindings: Vec<Binding>,
-    //
-    // available_parameters: IDict<IdString>,
-    // parameter_default_values: Dict<IdString, Const>,
-    // memories: Dict<IdString, Memory>,
-    // processes: Dict<IdString, Process>,
+//     monitors: Pool<Monitor>,
+//
+//     wires: Dict<IdString, Wire>,
+//     cells: Dict<IdString, Cell>,
+//
+//     connections: Vec<SigSig>,
+//     bindings: Vec<Binding>,
+//
+//     available_parameters: IDict<IdString>,
+//     parameter_default_values: Dict<IdString, Const>,
+//     memories: Dict<IdString, Memory>,
+//     processes: Dict<IdString, Process>,
 }
 
 impl Module {
